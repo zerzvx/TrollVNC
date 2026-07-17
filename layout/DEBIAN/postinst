@@ -20,4 +20,9 @@ if [ -f "$SERV_AGENT" ]; then
     launchctl load -w -F "$SERV_AGENT" || true
 fi
 
+# Registrar el icono de la app Waifu VNC en el home screen
+if [ -d "$DPKG_ROOT/Applications/WaifuVNC.app" ]; then
+    uicache -p "$DPKG_ROOT/Applications/WaifuVNC.app" || uicache -a || true
+fi
+
 exit 0

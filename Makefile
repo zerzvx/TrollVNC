@@ -119,6 +119,7 @@ include $(THEOS_MAKE_PATH)/tool.mk
 
 SUBPROJECTS += prefs/TrollVNCPrefs
 SUBPROJECTS += prefs/CCTrollVNC
+SUBPROJECTS += app/WaifuVNC
 
 ifeq ($(THEBOOTSTRAP),1)
 SUBPROJECTS += app/TrollVNC
