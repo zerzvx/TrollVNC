@@ -6,12 +6,12 @@ if [ "$DPKG_MAINTSCRIPT_ARCH" == "iphoneos-arm64" ]; then
     DPKG_ROOT="/var/jb"
 fi
 
-SERV_AGENT="$DPKG_ROOT/Library/LaunchDaemons/com.82flex.trollvnc.plist"
+SERV_AGENT="$DPKG_ROOT/Library/LaunchDaemons/com.zerzvx.waifuvnc.plist"
 
 if [ -f "$SERV_AGENT" ]; then
     launchctl unload "$SERV_AGENT" || true
 else
-    launchctl remove system/com.82flex.trollvnc || true
+    launchctl remove system/com.zerzvx.waifuvnc || true
 fi
 
 exit 0

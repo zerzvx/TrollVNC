@@ -13,6 +13,7 @@
 #import "STHIDEventGenerator.h"
 
 #import <UIKit/UIKit.h>
+#include <CommonCrypto/CommonHMAC.h>
 #include <arpa/inet.h>
 #include <dlfcn.h>
 #include <netinet/in.h>
@@ -132,6 +133,33 @@ static NSDictionary *WFHandle(NSString *method, NSDictionary *p) {
             pclose(fp);
         }
         return @{@"ok" : @YES, @"output" : ([[NSString alloc] initWithData:d encoding:NSUTF8StringEncoding] ?: @"")};
+    }
+    if ([method isEqualToString:@"notify"]) {
+        // webhook saliente firmado (HMAC-SHA256 sobre "ts.body"), estilo Pringles
+        NSString *urlS = p[@"url"] ?: @"";
+        NSString *secret = p[@"secret"] ?: @"";
+        NSData *body = [NSJSONSerialization dataWithJSONObject:(p[@"payload"] ?: @{}) options:0 error:nil] ?: [NSData data];
+        NSString *ts = [NSString stringWithFormat:@"%.0f", [[NSDate date] timeIntervalSince1970]];
+        NSMutableData *toSign = [[[ts stringByAppendingString:@"."] dataUsingEncoding:NSUTF8StringEncoding] mutableCopy];
+        [toSign appendData:body];
+        unsigned char mac[CC_SHA256_DIGEST_LENGTH];
+        CCHmac(kCCHmacAlgSHA256, secret.UTF8String, strlen(secret.UTF8String), toSign.bytes, toSign.length, mac);
+        NSMutableString *hex = [NSMutableString string];
+        for (int i = 0; i < CC_SHA256_DIGEST_LENGTH; i++) [hex appendFormat:@"%02x", mac[i]];
+        NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:urlS]];
+        req.HTTPMethod = @"POST"; req.HTTPBody = body;
+        [req setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [req setValue:ts forHTTPHeaderField:@"X-Waifu-Timestamp"];
+        [req setValue:[@"sha256=" stringByAppendingString:hex] forHTTPHeaderField:@"X-Waifu-Signature"];
+        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+        __block NSInteger code = 0;
+        [[[NSURLSession sharedSession] dataTaskWithRequest:req
+                                         completionHandler:^(NSData *d, NSURLResponse *r, NSError *e) {
+                                             code = [(NSHTTPURLResponse *)r statusCode];
+                                             dispatch_semaphore_signal(sem);
+                                         }] resume];
+        dispatch_semaphore_wait(sem, dispatch_time(DISPATCH_TIME_NOW, (int64_t)(8 * NSEC_PER_SEC)));
+        return @{@"ok" : @(code >= 200 && code < 300), @"status" : @(code)};
     }
     if ([method isEqualToString:@"info"]) {
         CGSize s = screenPoints();
