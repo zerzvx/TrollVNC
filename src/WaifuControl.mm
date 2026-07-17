@@ -68,13 +68,17 @@ static NSDictionary *WFHandle(NSString *method, NSDictionary *p) {
     double x = [p[@"x"] doubleValue], y = [p[@"y"] doubleValue];
 
     if ([method isEqualToString:@"tap"]) {
-        [hid tap:ptFromNorm(x, y)];
+        // OJO: [hid tap:] de TrollVNC pasa delayBetweenTaps:0 → dispara su propia assertion
+        // (STHIDEventGenerator.mm:844 delay>0.0) y el tap FALLA siempre. Usamos sendTaps con un
+        // delay válido (para 1 tap el delay no afecta al timing, solo satisface la assertion).
+        [hid sendTaps:1 location:ptFromNorm(x, y) numberOfTouches:1 delayBetweenTaps:0.15];
         return @{@"ok" : @YES};
     }
     if ([method isEqualToString:@"swipe"]) {
         double x1 = [p[@"x1"] doubleValue], y1 = [p[@"y1"] doubleValue];
         double x2 = [p[@"x2"] doubleValue], y2 = [p[@"y2"] doubleValue];
         double dur = p[@"duration"] ? [p[@"duration"] doubleValue] / 1000.0 : 0.3;
+        if (dur <= 0.0) dur = 0.3; // dragLinear asserta seconds>0.0
         [hid dragLinearWithStartPoint:ptFromNorm(x1, y1) endPoint:ptFromNorm(x2, y2) duration:dur];
         return @{@"ok" : @YES};
     }
