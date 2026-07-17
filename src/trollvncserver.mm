@@ -4002,6 +4002,13 @@ static void tvPublishClientDisconnectedNotif(NSString *host) {
     if (!gUserClientNotifsEnabled || !host || host.length == 0)
         return;
 
+    // Saltar loopback (igual que la notif de CONEXIÓN, línea ~3979 — el original lo omite aquí).
+    // TODAS nuestras conexiones VNC son 127.0.0.1 (usb-bridge/relay/túnel) → sin esto, spam en bucle.
+    if ([host isEqualToString:@"127.0.0.1"] || [host isEqualToString:@"::1"] || [host isEqualToString:@"localhost"] ||
+        [host hasPrefix:@"127."] || [host hasPrefix:@"::ffff:127."]) {
+        return;
+    }
+
     BulletinManager *mgr = [BulletinManager sharedManager];
 
     NSDictionary *userInfo = @{

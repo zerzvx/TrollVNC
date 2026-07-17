@@ -33,7 +33,19 @@
 	<array>
 		<string>/usr/bin/trollvncserver</string>
 		<string>-daemon</string>
+		<string>-F</string><string>30</string>
+		<string>-d</string><string>0.02</string>
+		<string>-Q</string><string>2</string>
+		<string>-s</string><string>0.45</string>
+		<string>-I</string><string>off</string>
+		<string>-i</string><string>off</string>
 	</array>
+	<key>EnvironmentVariables</key>
+	<dict>
+		<key>WAIFU_STREAM_QUALITY</key><string>0.30</string>
+		<key>WAIFU_STREAM_SCALE</key><string>0.45</string>
+		<key>WAIFU_STREAM_FPS</key><string>30</string>
+	</dict>
 	<key>RunAtLoad</key>
 	<true/>
 	<key>StandardErrorPath</key>
