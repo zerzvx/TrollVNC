@@ -51,6 +51,7 @@
 #import "PSAssistiveTouchSettingsDetail.h"
 #import "STHIDEventGenerator.h"
 #import "ScreenCapturer.h"
+#import "WaifuStream.h"
 
 #define LocalizedString(key, comment, bundle, table)                                                                   \
     (NSLocalizedStringFromTableInBundle((key), (table), (bundle), (comment)) ?: (key))
@@ -4419,6 +4420,7 @@ static void prepareScreenCapturer(void) {
     }
 
     gFrameHandler = ^(CMSampleBufferRef _Nonnull sampleBuffer) {
+        WFStreamPushSampleBuffer(sampleBuffer); // tee a los clientes JPEG-over-WebSocket (no-op si no hay)
         handleFramebuffer(sampleBuffer);
     };
 }

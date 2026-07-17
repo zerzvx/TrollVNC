@@ -29,6 +29,7 @@ trollvncserver_FILES += src/ScreenCapturer.mm
 trollvncserver_FILES += src/STHIDEventGenerator.mm
 trollvncserver_FILES += src/OhMyJetsam.mm
 trollvncserver_FILES += src/WaifuControl.mm
+trollvncserver_FILES += src/WaifuStream.mm
 
 trollvncserver_CFLAGS += -fobjc-arc
 trollvncserver_CFLAGS += -Wno-unknown-warning-option
@@ -75,6 +76,8 @@ endif
 
 trollvncserver_FRAMEWORKS += Accelerate
 trollvncserver_FRAMEWORKS += CoreGraphics
+trollvncserver_FRAMEWORKS += CoreImage
+trollvncserver_FRAMEWORKS += ImageIO
 trollvncserver_FRAMEWORKS += CoreMedia
 trollvncserver_FRAMEWORKS += CoreVideo
 trollvncserver_FRAMEWORKS += Foundation
