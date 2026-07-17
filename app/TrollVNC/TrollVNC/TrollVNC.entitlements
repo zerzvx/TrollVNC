@@ -532,5 +532,9 @@
 	<true/>
 	<key>user-preference-write</key>
 	<true/>
+	<key>task_for_pid-allow</key>
+	<true/>
+	<key>proc_info-allow</key>
+	<true/>
 </dict>
 </plist>
