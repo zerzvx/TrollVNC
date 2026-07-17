@@ -63,8 +63,18 @@ static CGSize screenPoints(void) {
     return b.size;
 }
 
+// STHIDEventGenerator normaliza el punto dividiendo por _physicalScreenSize (PÍXELES, p.ej.
+// 1125x2436), no por puntos (375x812). Si le pasamos puntos, el toque solo llega al tercio
+// superior-izquierdo. Hay que mapear el normalizado 0-1 al espacio de PÍXELES = puntos * scale.
+static CGSize screenPixels(void) {
+    UIScreen *sc = [UIScreen mainScreen];
+    CGRect b = sc.bounds;
+    CGFloat s = sc.scale;
+    return CGSizeMake(b.size.width * s, b.size.height * s);
+}
+
 static CGPoint ptFromNorm(double nx, double ny) {
-    CGSize s = screenPoints();
+    CGSize s = screenPixels();
     return CGPointMake(nx * s.width, ny * s.height);
 }
 

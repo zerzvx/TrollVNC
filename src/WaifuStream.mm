@@ -167,7 +167,9 @@ static double queryDouble(NSString *path, NSString *key, double lo, double hi, d
 }
 
 // ── input del cliente por el MISMO WS (texto JSON hacia arriba) → touch real 1:1 ──
-static CGSize gScreenPts = {0, 0};
+// OJO: STHIDEventGenerator normaliza por _physicalScreenSize (PÍXELES). El punto debe ir en
+// píxeles (puntos * scale), no en puntos, o el toque se recorta al tercio superior-izquierdo.
+static CGSize gScreenPx = {0, 0};
 
 static void WFDispatchInput(NSData *payload) {
     NSDictionary *j = [NSJSONSerialization JSONObjectWithData:payload options:0 error:nil];
@@ -176,9 +178,11 @@ static void WFDispatchInput(NSData *payload) {
     NSString *m = j[@"m"];
     if (!m)
         return;
-    CGSize s = gScreenPts;
-    if (s.width <= 0)
-        s = [UIScreen mainScreen].bounds.size;
+    CGSize s = gScreenPx;
+    if (s.width <= 0) {
+        UIScreen *sc = [UIScreen mainScreen];
+        s = CGSizeMake(sc.bounds.size.width * sc.scale, sc.bounds.size.height * sc.scale);
+    }
     CGPoint p = CGPointMake([j[@"x"] doubleValue] * s.width, [j[@"y"] doubleValue] * s.height);
     STHIDEventGenerator *hid = [STHIDEventGenerator sharedGenerator];
     if ([m isEqualToString:@"touch_down"])
@@ -321,8 +325,10 @@ static void handleNewConn(int fd) {
     }
     gLastJPEG = nil;    // que el nuevo cliente reciba un frame aunque la pantalla esté estática
     WFCaptureRetain();  // mantener viva la captura del daemon mientras este cliente mire (arranca si hacía falta)
-    if (gScreenPts.width <= 0)
-        gScreenPts = [UIScreen mainScreen].bounds.size;
+    if (gScreenPx.width <= 0) {
+        UIScreen *sc = [UIScreen mainScreen];
+        gScreenPx = CGSizeMake(sc.bounds.size.width * sc.scale, sc.bounds.size.height * sc.scale);
+    }
     NSLog(@"[WaifuStream] cliente conectado fd=%d (total=%d)", fd, clientCount());
 
     // lector: parsea input del cliente (texto JSON = touch) por el MISMO socket (baja latencia)
