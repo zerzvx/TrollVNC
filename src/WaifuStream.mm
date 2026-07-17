@@ -142,6 +142,22 @@ void WFStreamPushSampleBuffer(CMSampleBufferRef sb) {
     });
 }
 
+// Lee un parámetro numérico de la query del path (?q=..&scale=..&fps=..). Clampa a [lo,hi].
+static double queryDouble(NSString *path, NSString *key, double lo, double hi, double def) {
+    NSRange q = [path rangeOfString:@"?"];
+    if (q.location == NSNotFound)
+        return def;
+    for (NSString *pair in [[path substringFromIndex:q.location + 1] componentsSeparatedByString:@"&"]) {
+        NSArray *kv = [pair componentsSeparatedByString:@"="];
+        if (kv.count == 2 && [kv[0] isEqualToString:key]) {
+            double v = [kv[1] doubleValue];
+            if (v >= lo && v <= hi)
+                return v;
+        }
+    }
+    return def;
+}
+
 static NSString *headerValue(NSString *head, NSString *name) {
     for (NSString *line in [head componentsSeparatedByString:@"\r\n"]) {
         NSRange r = [line rangeOfString:@":"];
@@ -205,6 +221,15 @@ static void handleNewConn(int fd) {
         close(fd);
         return;
     }
+    // Overrides en vivo por query (?q=&scale=&fps=) → el visor controla calidad/fluidez sin reiniciar.
+    // Global (gana el último que conecta); suficiente con 1 espectador. Cambia el próximo frame.
+    NSString *reqLine = [[head componentsSeparatedByString:@"\r\n"] firstObject] ?: @"";
+    NSArray *parts = [reqLine componentsSeparatedByString:@" "];
+    NSString *path = parts.count >= 2 ? parts[1] : @"/";
+    gQuality = queryDouble(path, @"q", 0.05, 1.0, gQuality);
+    gScale = queryDouble(path, @"scale", 0.15, 1.0, gScale);
+    gFps = queryDouble(path, @"fps", 1, 60, gFps);
+
     int one = 1;
     setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one));
     struct timeval tv = {0, 300 * 1000}; // 300ms SO_SNDTIMEO → cliente lento se dropea, no atasca
