@@ -212,10 +212,8 @@ static void handleNewConn(int fd) {
     @synchronized(gClientsLock) {
         [gClients addObject:@(fd)];
     }
-    gLastJPEG = nil; // forzar que el nuevo cliente reciba un frame aunque esté estática
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [[ScreenCapturer sharedCapturer] forceNextFrameUpdate];
-    });
+    gLastJPEG = nil;    // que el nuevo cliente reciba un frame aunque la pantalla esté estática
+    WFCaptureRetain();  // mantener viva la captura del daemon mientras este cliente mire (arranca si hacía falta)
     NSLog(@"[WaifuStream] cliente conectado fd=%d (total=%d)", fd, clientCount());
 
     // lector: solo detecta cierre (el input va por WaifuControl:46900)
@@ -228,6 +226,7 @@ static void handleNewConn(int fd) {
             break; // opcode close
     }
     removeClient(fd);
+    WFCaptureRelease(); // soltar la captura (para si no quedan clientes VNC ni de stream)
     NSLog(@"[WaifuStream] cliente desconectado fd=%d (total=%d)", fd, clientCount());
 }
 

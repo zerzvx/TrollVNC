@@ -30,6 +30,13 @@ extern "C" {
     No-op (barato) cuando no hay clientes. Seguro desde el hilo de captura. */
 void WFStreamPushSampleBuffer(CMSampleBufferRef sampleBuffer);
 
+/** Mantiene viva la captura de pantalla mientras haya clientes de stream.
+    (La definen en trollvncserver.mm, que tiene acceso al ciclo de captura del daemon.)
+    En TrollVNC la captura solo corre si hay un cliente VNC; estos contadores hacen
+    que un cliente de stream la arranque/pare igual, sin necesidad de VNC. */
+void WFCaptureRetain(void);
+void WFCaptureRelease(void);
+
 #ifdef __cplusplus
 }
 #endif

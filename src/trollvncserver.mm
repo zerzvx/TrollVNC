@@ -4023,6 +4023,38 @@ static void tvPublishClientDisconnectedNotif(NSString *host) {
 static BOOL gIsCaptureStarted = NO;
 static BOOL gIsClipboardStarted = NO;
 
+// ── WaifuStream: mantener la captura viva por clientes de stream (JPEG-over-WS) ──
+// TrollVNC arranca/para la captura según gClientCount (clientes VNC). Los clientes del stream
+// no son clientes VNC, así que llevamos un contador aparte y arrancamos/paramos la captura
+// considerando AMBOS. Así el stream funciona aunque no haya ningún cliente VNC conectado.
+static std::atomic<int> gStreamClients{0};
+
+void WFCaptureRetain(void) {
+    gStreamClients.fetch_add(1, std::memory_order_relaxed);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (!gIsCaptureStarted && gFrameHandler) {
+            gIsCaptureStarted = YES;
+            [[ScreenCapturer sharedCapturer] startCaptureWithFrameHandler:gFrameHandler];
+            TVLog(@"Screen capture started for stream client (streamClients=%d).", gStreamClients.load());
+        } else {
+            [[ScreenCapturer sharedCapturer] forceNextFrameUpdate];
+        }
+    });
+}
+
+void WFCaptureRelease(void) {
+    int n = gStreamClients.fetch_sub(1, std::memory_order_relaxed) - 1;
+    if (n < 0)
+        gStreamClients.store(0, std::memory_order_relaxed);
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (gIsCaptureStarted && gClientCount == 0 && gStreamClients.load() == 0) {
+            [[ScreenCapturer sharedCapturer] endCapture];
+            gIsCaptureStarted = NO;
+            TVLog(@"No clients remaining (VNC+stream); screen capture stopped.");
+        }
+    });
+}
+
 #if !TARGET_OS_SIMULATOR
 static BOOL gRestoreAssist = NO;
 #endif
@@ -4057,7 +4089,7 @@ static void clientGoneHook(rfbClientPtr cl) {
     NSString *host = (cl && cl->host) ? [NSString stringWithUTF8String:cl->host] : @"";
     TVLog(@"Client %@ disconnected, active clients=%d", host, gClientCount);
 
-    if (gIsCaptureStarted && gClientCount == 0) {
+    if (gIsCaptureStarted && gClientCount == 0 && gStreamClients.load() == 0) {
         [[ScreenCapturer sharedCapturer] endCapture];
         gIsCaptureStarted = NO;
         TVLog(@"No clients remaining; screen capture stopped.");
