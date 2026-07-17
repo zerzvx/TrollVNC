@@ -3,6 +3,7 @@
  Ver WaifuStream.h para la arquitectura. GPLv2 (parte de TrollVNC).
 */
 #import "WaifuStream.h"
+#import "STHIDEventGenerator.h"
 #import "ScreenCapturer.h"
 
 #import <CoreImage/CoreImage.h>
@@ -20,6 +21,13 @@
 #include <sys/socket.h>
 #include <sys/time.h>
 #include <unistd.h>
+
+// Touch continuo (mismo modelo que TrollVNC ptrAddEvent → dedo real: down→move*→up).
+@interface STHIDEventGenerator (WFTouch)
+- (void)touchDownAtPoints:(CGPoint *)locations touchCount:(NSUInteger)touchCount;
+- (void)liftUpAtPoints:(CGPoint *)locations touchCount:(NSUInteger)touchCount;
+- (void)_updateTouchPoints:(CGPoint *)points count:(NSUInteger)count;
+@end
 
 // ── config (override por env en el plist del daemon) ──
 static double gFps = 20.0;    // fps objetivo del stream
@@ -158,6 +166,80 @@ static double queryDouble(NSString *path, NSString *key, double lo, double hi, d
     return def;
 }
 
+// ── input del cliente por el MISMO WS (texto JSON hacia arriba) → touch real 1:1 ──
+static CGSize gScreenPts = {0, 0};
+
+static void WFDispatchInput(NSData *payload) {
+    NSDictionary *j = [NSJSONSerialization JSONObjectWithData:payload options:0 error:nil];
+    if (![j isKindOfClass:[NSDictionary class]])
+        return;
+    NSString *m = j[@"m"];
+    if (!m)
+        return;
+    CGSize s = gScreenPts;
+    if (s.width <= 0)
+        s = [UIScreen mainScreen].bounds.size;
+    CGPoint p = CGPointMake([j[@"x"] doubleValue] * s.width, [j[@"y"] doubleValue] * s.height);
+    STHIDEventGenerator *hid = [STHIDEventGenerator sharedGenerator];
+    if ([m isEqualToString:@"touch_down"])
+        [hid touchDownAtPoints:&p touchCount:1];
+    else if ([m isEqualToString:@"touch_move"])
+        [hid _updateTouchPoints:&p count:1];
+    else if ([m isEqualToString:@"touch_up"])
+        [hid liftUpAtPoints:&p touchCount:1];
+}
+
+static ssize_t recvAll(int fd, void *buf, size_t n) {
+    uint8_t *p = (uint8_t *)buf;
+    size_t got = 0;
+    while (got < n) {
+        ssize_t r = recv(fd, p + got, n - got, 0);
+        if (r <= 0)
+            return r;
+        got += (size_t)r;
+    }
+    return (ssize_t)got;
+}
+
+// Lee UN frame WS del cliente (enmascarado). Devuelve opcode (0x8=close), -1 error. Rellena out.
+static int wsReadClientFrame(int fd, NSMutableData *out) {
+    uint8_t h[2];
+    if (recvAll(fd, h, 2) != 2)
+        return -1;
+    int opcode = h[0] & 0x0f;
+    int masked = h[1] & 0x80;
+    uint64_t len = h[1] & 0x7f;
+    uint8_t ext[8];
+    if (len == 126) {
+        if (recvAll(fd, ext, 2) != 2)
+            return -1;
+        len = ((uint64_t)ext[0] << 8) | ext[1];
+    } else if (len == 127) {
+        if (recvAll(fd, ext, 8) != 8)
+            return -1;
+        len = 0;
+        for (int i = 0; i < 8; i++)
+            len = (len << 8) | ext[i];
+    }
+    uint8_t mask[4] = {0, 0, 0, 0};
+    if (masked && recvAll(fd, mask, 4) != 4)
+        return -1;
+    if (len > 2000000)
+        return -1; // guard
+    [out setLength:0];
+    if (len) {
+        NSMutableData *buf = [NSMutableData dataWithLength:(NSUInteger)len];
+        if (recvAll(fd, buf.mutableBytes, (size_t)len) != (ssize_t)len)
+            return -1;
+        uint8_t *b = (uint8_t *)buf.mutableBytes;
+        if (masked)
+            for (uint64_t i = 0; i < len; i++)
+                b[i] ^= mask[i % 4];
+        [out appendData:buf];
+    }
+    return opcode;
+}
+
 static NSString *headerValue(NSString *head, NSString *name) {
     for (NSString *line in [head componentsSeparatedByString:@"\r\n"]) {
         NSRange r = [line rangeOfString:@":"];
@@ -239,16 +321,19 @@ static void handleNewConn(int fd) {
     }
     gLastJPEG = nil;    // que el nuevo cliente reciba un frame aunque la pantalla esté estática
     WFCaptureRetain();  // mantener viva la captura del daemon mientras este cliente mire (arranca si hacía falta)
+    if (gScreenPts.width <= 0)
+        gScreenPts = [UIScreen mainScreen].bounds.size;
     NSLog(@"[WaifuStream] cliente conectado fd=%d (total=%d)", fd, clientCount());
 
-    // lector: solo detecta cierre (el input va por WaifuControl:46900)
-    char rbuf[2048];
+    // lector: parsea input del cliente (texto JSON = touch) por el MISMO socket (baja latencia)
+    NSMutableData *pl = [NSMutableData data];
     while (1) {
-        ssize_t n = read(fd, rbuf, sizeof(rbuf));
-        if (n <= 0)
-            break;
-        if (n >= 1 && (rbuf[0] & 0x0f) == 0x8)
-            break; // opcode close
+        int op = wsReadClientFrame(fd, pl);
+        if (op < 0 || op == 0x8)
+            break;            // error o close
+        if (op == 0x1 && pl.length)
+            WFDispatchInput(pl); // text = evento de input
+        // ping/pong/binario del cliente: ignorar
     }
     removeClient(fd);
     WFCaptureRelease(); // soltar la captura (para si no quedan clientes VNC ni de stream)

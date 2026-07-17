@@ -35,6 +35,13 @@
 - (NSArray<LSApplicationProxy *> *)allApplications;
 @end
 
+// Seguimiento de touch continuo (mismo modelo que TrollVNC ptrAddEvent → dedo real: down→move→up).
+@interface STHIDEventGenerator (WFTouch)
+- (void)touchDownAtPoints:(CGPoint *)locations touchCount:(NSUInteger)touchCount;
+- (void)liftUpAtPoints:(CGPoint *)locations touchCount:(NSUInteger)touchCount;
+- (void)_updateTouchPoints:(CGPoint *)points count:(NSUInteger)count;
+@end
+
 static LSApplicationWorkspace *WFWorkspace(void) {
     Class cls = NSClassFromString(@"LSApplicationWorkspace");
     return [cls defaultWorkspace];
@@ -72,6 +79,22 @@ static NSDictionary *WFHandle(NSString *method, NSDictionary *p) {
         // (STHIDEventGenerator.mm:844 delay>0.0) y el tap FALLA siempre. Usamos sendTaps con un
         // delay válido (para 1 tap el delay no afecta al timing, solo satisface la assertion).
         [hid sendTaps:1 location:ptFromNorm(x, y) numberOfTouches:1 delayBetweenTaps:0.15];
+        return @{@"ok" : @YES};
+    }
+    // Touch continuo 1:1 (arrastre/scroll reales) — el cliente manda down → move* → up.
+    if ([method isEqualToString:@"touch_down"]) {
+        CGPoint p = ptFromNorm(x, y);
+        [hid touchDownAtPoints:&p touchCount:1];
+        return @{@"ok" : @YES};
+    }
+    if ([method isEqualToString:@"touch_move"]) {
+        CGPoint p = ptFromNorm(x, y);
+        [hid _updateTouchPoints:&p count:1];
+        return @{@"ok" : @YES};
+    }
+    if ([method isEqualToString:@"touch_up"]) {
+        CGPoint p = ptFromNorm(x, y);
+        [hid liftUpAtPoints:&p touchCount:1];
         return @{@"ok" : @YES};
     }
     if ([method isEqualToString:@"swipe"]) {
