@@ -27,7 +27,7 @@
 - (instancetype)init {
     self = [super init];
     if (self) {
-        _defaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.82flex.trollvnc"];
+        _defaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.zerzvx.waifuvnc"];
         [_defaults registerDefaults:@{
             @"Enabled" : @YES,
         }];

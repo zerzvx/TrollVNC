@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleIdentifier</key>
-	<string>com.82flex.trollvnc</string>
+	<string>com.zerzvx.waifuvnc</string>
 	<key>EnablePressuredExit</key>
 	<false/>
 	<key>EnableTransactions</key>
@@ -24,7 +24,7 @@
 	<key>KeepAlive</key>
 	<true/>
 	<key>Label</key>
-	<string>com.82flex.trollvnc</string>
+	<string>com.zerzvx.waifuvnc</string>
 	<key>POSIXSpawnType</key>
 	<string>App</string>
 	<key>ProcessType</key>

@@ -173,7 +173,7 @@ NS_INLINE void _DTXCalcLinearPinchStartEndPoints(CGRect bounds, CGFloat pixelsSc
 
     dispatch_queue_attr_t attr = dispatch_queue_attr_make_with_qos_class(DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL,
                                                                          QOS_CLASS_USER_INTERACTIVE, 0);
-    _hidEventQueue = dispatch_queue_create("com.82flex.trollvnc.hid-events", attr);
+    _hidEventQueue = dispatch_queue_create("com.zerzvx.waifuvnc.hid-events", attr);
 
     for (NSUInteger i = 0; i < HIDMaxTouchCount; ++i)
         _activePoints[i].identifier = fingerIdentifiers[i];

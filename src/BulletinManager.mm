@@ -21,7 +21,7 @@
 #import "BulletinManager.h"
 #import "Logging.h"
 
-#define BANNER_CATEGORY "com.82flex.trollvnc.notification-category.standard"
+#define BANNER_CATEGORY "com.zerzvx.waifuvnc.notification-category.standard"
 
 @interface UNUserNotificationCenter (Private)
 - (instancetype)initWithBundleIdentifier:(NSString *)bundleIdentifier;

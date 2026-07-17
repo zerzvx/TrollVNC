@@ -18,7 +18,7 @@
 #import <Foundation/Foundation.h>
 #import <sys/sysctl.h>
 
-#define TVNC_NOTIFY_PREFS_CHANGED "com.82flex.trollvnc.prefs-changed"
+#define TVNC_NOTIFY_PREFS_CHANGED "com.zerzvx.waifuvnc.prefs-changed"
 
 // Minimal process enumeration to restart VNC service
 NS_INLINE void TVNCEnumerateProcesses(void (^enumerator)(pid_t pid, NSString *executablePath, BOOL *stop)) {

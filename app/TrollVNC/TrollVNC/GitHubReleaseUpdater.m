@@ -27,7 +27,7 @@
     } while (0)
 #endif
 
-static NSString *const kGHUpdaterDefaultsSuite = @"com.82flex.trollvnc.GitHubReleaseUpdater.Defaults";
+static NSString *const kGHUpdaterDefaultsSuite = @"com.zerzvx.waifuvnc.GitHubReleaseUpdater.Defaults";
 static NSString *const kKeyPausedUntil = @"pausedUntil";
 static NSString *const kKeySkippedVersion = @"skippedVersion";
 static NSString *const kKeyLastCheckAt = @"lastCheckAt";
@@ -181,7 +181,7 @@ NSString *const GitHubReleaseUpdaterErrorDomain = @"GitHubReleaseUpdater";
 
 - (instancetype)initPrivate {
     if (self = [super init]) {
-        _queue = dispatch_queue_create("com.82flex.trollvnc.GitHubReleaseUpdater.queue", DISPATCH_QUEUE_SERIAL);
+        _queue = dispatch_queue_create("com.zerzvx.waifuvnc.GitHubReleaseUpdater.queue", DISPATCH_QUEUE_SERIAL);
         NSURLSessionConfiguration *cfg = [NSURLSessionConfiguration ephemeralSessionConfiguration];
         cfg.requestCachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
         cfg.timeoutIntervalForRequest = 30;

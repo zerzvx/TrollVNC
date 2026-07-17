@@ -79,7 +79,7 @@ int SBSLaunchApplicationWithIdentifierAndURLAndLaunchOptions(CFStringRef bundleI
 - (void)commonInit {
     _checkTimer = nil;
     _serviceRunning = NO;
-    _userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.82flex.trollvnc"];
+    _userDefaults = [[NSUserDefaults alloc] initWithSuiteName:@"com.zerzvx.waifuvnc"];
 
     NSBundle *prefsBundle = [NSBundle bundleWithPath:[[NSBundle mainBundle] pathForResource:@"TrollVNCPrefs"
                                                                                      ofType:@"bundle"]];

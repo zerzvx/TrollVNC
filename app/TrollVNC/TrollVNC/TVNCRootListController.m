@@ -601,19 +601,19 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 
 - (NSString *)cacertPath {
 #if TARGET_IPHONE_SIMULATOR
-    return [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Preferences/com.82flex.trollvnc.ca-cert.pem"];
+    return [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Preferences/com.zerzvx.waifuvnc.ca-cert.pem"];
 #else
     return [self.jbrootPath
-        stringByAppendingPathComponent:@"var/mobile/Library/Preferences/com.82flex.trollvnc.ca-cert.pem"];
+        stringByAppendingPathComponent:@"var/mobile/Library/Preferences/com.zerzvx.waifuvnc.ca-cert.pem"];
 #endif
 }
 
 - (NSString *)cakeyPath {
 #if TARGET_IPHONE_SIMULATOR
-    return [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Preferences/com.82flex.trollvnc.ca-key.pem"];
+    return [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Preferences/com.zerzvx.waifuvnc.ca-key.pem"];
 #else
     return [self.jbrootPath
-        stringByAppendingPathComponent:@"var/mobile/Library/Preferences/com.82flex.trollvnc.ca-key.pem"];
+        stringByAppendingPathComponent:@"var/mobile/Library/Preferences/com.zerzvx.waifuvnc.ca-key.pem"];
 #endif
 }
 
@@ -804,7 +804,7 @@ NS_INLINE BOOL TVNCIsValidBindHostLiteral(NSString *host) {
 }
 
 - (void)_reallyResetDefaults {
-    [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:@"com.82flex.trollvnc"];
+    [[NSUserDefaults standardUserDefaults] removePersistentDomainForName:@"com.zerzvx.waifuvnc"];
     [[NSUserDefaults standardUserDefaults] synchronize];
 
     [self reloadSpecifiers];

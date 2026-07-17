@@ -36,7 +36,7 @@
 #import "TRWatchDog.h"
 #import "libproc.h"
 
-#define SINGLETON_MARKER_PATH "/var/mobile/Library/Caches/com.82flex.trollvnc.manager.pid"
+#define SINGLETON_MARKER_PATH "/var/mobile/Library/Caches/com.zerzvx.waifuvnc.manager.pid"
 
 BOOL tvncLoggingEnabled = YES;
 BOOL tvncVerboseLoggingEnabled = NO;

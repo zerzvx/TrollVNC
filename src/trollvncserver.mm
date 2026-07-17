@@ -451,7 +451,7 @@ static void parseDaemonOptions(void) {
     }
 
     if (!prefs) {
-        prefs = [[NSUserDefaults standardUserDefaults] persistentDomainForName:@"com.82flex.trollvnc"];
+        prefs = [[NSUserDefaults standardUserDefaults] persistentDomainForName:@"com.zerzvx.waifuvnc"];
     }
 
 #if TARGET_IPHONE_SIMULATOR
@@ -460,7 +460,7 @@ static void parseDaemonOptions(void) {
         if (sandboxPath && sandboxPath[0] != '\0') {
             NSString *sandbox = [NSString stringWithUTF8String:sandboxPath];
             NSString *plistPath =
-                [sandbox stringByAppendingPathComponent:@"Library/Preferences/com.82flex.trollvnc.plist"];
+                [sandbox stringByAppendingPathComponent:@"Library/Preferences/com.zerzvx.waifuvnc.plist"];
             prefs = [NSDictionary dictionaryWithContentsOfFile:plistPath];
             if (prefs) {
                 TVLog(@"-daemon: loaded simulator preferences from %@", plistPath);
@@ -470,7 +470,7 @@ static void parseDaemonOptions(void) {
 #endif
 
     if (!prefs) {
-        TVLog(@"-daemon: no preferences found for domain com.82flex.trollvnc");
+        TVLog(@"-daemon: no preferences found for domain com.zerzvx.waifuvnc");
         return;
     }
 
@@ -928,12 +928,12 @@ static void parseDaemonOptions(void) {
     [cfg appendFormat:@"dir=%@ cert=%@ key=%@", dirStr, certStr, keyStr];
 
     TVLog(@"%@", cfg);
-    TVLog(@"-daemon: preferences applied (domain=com.82flex.trollvnc)");
+    TVLog(@"-daemon: preferences applied (domain=com.zerzvx.waifuvnc)");
 }
 
 static void parseCLI(int argc, const char *argv[]) {
     // Special mode: -daemon reads configuration from NSUserDefaults domain
-    // com.82flex.trollvnc and initializes runtime options accordingly.
+    // com.zerzvx.waifuvnc and initializes runtime options accordingly.
     BOOL isDaemon = NO;
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-daemon") == 0) {
@@ -3256,7 +3256,7 @@ static void ptrAddEvent(int buttonMask, int x, int y, rfbClientPtr cl) {
 
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        gWheelQueue = dispatch_queue_create("com.82flex.trollvnc.wheel", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
+        gWheelQueue = dispatch_queue_create("com.zerzvx.waifuvnc.wheel", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
     });
 
     if (gWheelStepPx > 0 && ((wheelUpNow && !wheelUpPrev) || (wheelDnNow && !wheelDnPrev))) {
@@ -3592,7 +3592,7 @@ static void tvStartControlSocketIfNeeded(void) {
     static dispatch_queue_t sTVCtlQueue = nil;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
-        sTVCtlQueue = dispatch_queue_create("com.82flex.trollvnc.control", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
+        sTVCtlQueue = dispatch_queue_create("com.zerzvx.waifuvnc.control", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
     });
 
     gTvCtlAcceptSource = dispatch_source_create(DISPATCH_SOURCE_TYPE_READ, (uintptr_t)fd, 0, sTVCtlQueue);
@@ -4992,7 +4992,7 @@ static void cleanupAndExit(int code) {
 
 #ifdef THEBOOTSTRAP
 #define SINGLETON_PARENT_NAME "trollvncmanager"
-#define SINGLETON_MARKER_PATH "/var/mobile/Library/Caches/com.82flex.trollvnc.server.pid"
+#define SINGLETON_MARKER_PATH "/var/mobile/Library/Caches/com.zerzvx.waifuvnc.server.pid"
 
 static void monitorParentProcess(void) {
     if (isatty(STDIN_FILENO)) {

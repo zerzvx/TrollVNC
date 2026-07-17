@@ -94,7 +94,7 @@ NSString *const TRWatchDogErrorDomain = @"TRWatchDogErrorDomain";
 
         // Initialize state machine
         _internalState = TRWatchDogStateStopped;
-        _stateQueue = dispatch_queue_create("com.82flex.trollvnc.TRWatchDog.state", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
+        _stateQueue = dispatch_queue_create("com.zerzvx.waifuvnc.TRWatchDog.state", DISPATCH_QUEUE_SERIAL_WITH_AUTORELEASE_POOL);
         _currentTask = nil;
         _throttleTimer = NULL;
 
